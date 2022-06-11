@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request,jsonify
 import detect_object
-from forms import VideoForm
+from flask_ngrok import run_with_ngrok
 import os.path
 from detector import *
 from detect_object import *
