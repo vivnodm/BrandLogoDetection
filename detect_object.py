@@ -9,6 +9,7 @@ from detector import DetectorTF2
 def DetectFromVideo(detector,Video_path, blur_decision=False):
     logo_dict = {}
     cap = cv2.VideoCapture(Video_path)
+    fps = cap.get(cv2.CAP_PROP_FPS)
     # frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     # frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     # out = cv2.VideoWriter('logo_detected_video.mp4', cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame_width, frame_height))
@@ -38,6 +39,8 @@ def DetectFromVideo(detector,Video_path, blur_decision=False):
 
     cap.release()
     # out.release()
+    logo_dict = { key: int(value//fps) for key,value in logo_dict.items()}
+
     with open("freq_meta.json", "w") as outfile:
         outfile.write(json.dumps(dict(summary=logo_dict)))
 
