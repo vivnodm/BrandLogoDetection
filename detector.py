@@ -4,6 +4,7 @@ import tensorflow as tf
 from object_detection.utils import label_map_util
 from PIL import Image, ImageFilter
 import config
+import traceback
 
 class DetectorTF2:
 
@@ -46,36 +47,41 @@ class DetectorTF2:
         return bbox
 
     def DisplayDetections(self, image, boxes_list,blur_decision, det_time=None, ):
-        if not boxes_list: 
-            return {"image":image, "logo_set":set()}  # input list is empty
-        img = image.copy()
-        logo_set = set()
-        for idx in range(len(boxes_list)):
-            x_min = boxes_list[idx][0]
-            y_min = boxes_list[idx][1]
-            x_max = boxes_list[idx][2]
-            y_max = boxes_list[idx][3]
-            cls = str(boxes_list[idx][4])
-            logo_set.add(cls)
-            score = str(np.round(boxes_list[idx][-1], 2))
+        try:
+            if not boxes_list: 
+                return {"image":image, "logo_set":set()}  # input list is empty
+            img = image.copy()
+            logo_set = set()
+            for idx in range(len(boxes_list)):
+                x_min = boxes_list[idx][0]
+                y_min = boxes_list[idx][1]
+                x_max = boxes_list[idx][2]
+                y_max = boxes_list[idx][3]
+                cls = str(boxes_list[idx][4])
+                logo_set.add(cls)
+                score = str(np.round(boxes_list[idx][-1], 2))
 
-            text = cls + " : " + score
-            # blur here
-            if blur_decision:
-                # taking top-left and bottom-right
-                image_rgb  = Image.fromarray(img)
-                cropped_img= image_rgb.crop((x_min,y_max,x_max,y_min))
-                blurred_image = cropped_img.filter(ImageFilter.GaussianBlur(radius=3))
-                image_rgb.paste(blurred_image, (x_min,y_max,x_max,y_min))
-                img = numpy.asarray(image_rgb)
+                text = cls + " : " + score
+                # blur here
+                blur_img = None
+                if blur_decision==True:
+                    # taking top-left and bottom-right
+                    image_rgb  = Image.fromarray(img.astype('uint8'), 'RGB')
+                    cropped_img= image_rgb.crop((x_min,y_max,x_max,y_min))
+                    blurred_image = Image.new("RGB", (x_max-x_min, y_max-y_min), (255, 255, 255))#cropped_img.filter(ImageFilter.)
+                    image_rgb.paste(blurred_image, box=(x_min,y_min))
+                    blur_img = np.array(image_rgb)
+                if blur_img is not None: img = blur_img
+                cv2.rectangle(img, (x_min, y_min), (x_max, y_max), (0, 0, 0), 2)
+                cv2.rectangle(img, (x_min, y_min - 20), (x_min, y_min), (255, 255, 255), -1)
+                cv2.putText(img, text, (x_min + 5, y_min - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 100), 2)
 
-            cv2.rectangle(img, (x_min, y_min), (x_max, y_max), (0, 255, 0), 1)
-            cv2.rectangle(img, (x_min, y_min - 20), (x_min, y_min), (255, 255, 255), -1)
-            cv2.putText(img, text, (x_min + 5, y_min - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+            if det_time != None:
+                fps = round(1000. / det_time, 1)
+                fps_txt = str(fps) + " FPS"
+                cv2.putText(img, fps_txt, (25, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
 
-        if det_time != None:
-            fps = round(1000. / det_time, 1)
-            fps_txt = str(fps) + " FPS"
-            cv2.putText(img, fps_txt, (25, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
-
-        return {"image":img, "logo_set":logo_set}
+            return {"image":img, "logo_set":logo_set}
+        except Exception as e :
+            traceback.print_exc()
+            print(e)
