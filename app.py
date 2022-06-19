@@ -25,17 +25,6 @@ def upload():
         data = {'message': 'Video Upload Unsuccessful, Please Provide a Proper Path'}
         return jsonify(data),400
 
-# @app.route('/video_feed')
-# def video_feed():
-#     detector_obj = DetectorTF2()
-#     video_path = './video_dir/tosend.mp4'
-#     return Response(DetectFromVideo(detector_obj, video_path, True ), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-# @app.route('/')
-# def index():
-#     """Video streaming home page."""
-#     return render_template('index.html')
-
 @app.route("/detect", methods=['GET'])
 def detect():
     try:

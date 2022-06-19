@@ -46,7 +46,7 @@ class DetectorTF2:
                     bbox.append([x_min, y_min, x_max, y_max, class_label, float(bscores[idx])])
         return bbox
 
-    def DisplayDetections(self, image, boxes_list,blur_decision, det_time=None, ):
+    def DisplayDetections(self, image, boxes_list,blur_decision):
         try:
             if not boxes_list: 
                 return {"image":image, "logo_set":set()}  # input list is empty
@@ -62,24 +62,17 @@ class DetectorTF2:
                 score = str(np.round(boxes_list[idx][-1], 2))
 
                 text = cls + " : " + score
-                # blur here
                 blur_img = None
                 if blur_decision==True:
-                    # taking top-left and bottom-right
                     image_rgb  = Image.fromarray(img.astype('uint8'), 'RGB')
                     cropped_img= image_rgb.crop((x_min,y_max,x_max,y_min))
-                    blurred_image = Image.new("RGB", (x_max-x_min, y_max-y_min), (255, 255, 255))#cropped_img.filter(ImageFilter.)
+                    blurred_image = Image.new("RGB", (x_max-x_min, y_max-y_min), (255, 255, 255)) #cropped_img.filter(ImageFilter.)
                     image_rgb.paste(blurred_image, box=(x_min,y_min))
                     blur_img = np.array(image_rgb)
                 if blur_img is not None: img = blur_img
-                cv2.rectangle(img, (x_min, y_min), (x_max, y_max), (0, 0, 0), 2)
+                cv2.rectangle(img, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
                 cv2.rectangle(img, (x_min, y_min - 20), (x_min, y_min), (255, 255, 255), -1)
-                cv2.putText(img, text, (x_min + 5, y_min - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 100), 2)
-
-            if det_time != None:
-                fps = round(1000. / det_time, 1)
-                fps_txt = str(fps) + " FPS"
-                cv2.putText(img, fps_txt, (25, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2)
+                cv2.putText(img, text, (x_min + 5, y_min - 7), cv2.FONT_HERSHEY_TRIPLEX, 0.5, (255, 255, 255), 2)
 
             return {"image":img, "logo_set":logo_set}
         except Exception as e :
