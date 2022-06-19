@@ -31,8 +31,11 @@ def DetectFromVideo(detector,Video_path, blur_decision=False):
         yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
     cap.release()
-
-    logo_dict = { key: int(value//fps) for key,value in logo_dict.items()}
+    for key,value in logo_dict.items():
+        if (value//fps)!=0:
+            logo_dict[key]=int(value//fps)
+        else:
+            logo_dict[key] = 1
 
     with open("freq_meta.json", "w") as outfile:
         outfile.write(json.dumps(dict(summary=logo_dict)))
